@@ -1,3 +1,4 @@
+
 import asyncio
 from poke_env import AccountConfiguration
 from poke_env.player import RandomPlayer
@@ -14,13 +15,18 @@ from poke_env.battle import pokemon
 #Learning how to make own player class. Customizing move choice logic, return values etc.
 class QartiPlayer(Player):
     async def choose_move(self,battle):
+        # if the bot must switch to a pokemon, choose a random pokemon (for now)
         if battle.force_switch:
             return self.choose_random_move(battle=battle)
+        # list of moves active pokemon can make this turn 
         moves=battle.available_moves
         damageCalculator= calculate_damage
         maxDamage=0
+        # loop through all moves
         for i in moves:
+            # check all stats in opponent stat dict are valid, otherwise just use max base power in available moves
             if all(battle.opponent_active_pokemon.stats.values()):
+                #calc max damage and the move that produced max damage
                 currentDamage=(damageCalculator(attacker_identifier = battle.active_pokemon.identifier(battle.player_role),defender_identifier = battle.opponent_active_pokemon.identifier(battle.opponent_role),move = i,battle = battle))[0]
                 if currentDamage>maxDamage:
                     maxDamage=currentDamage
