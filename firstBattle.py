@@ -14,6 +14,8 @@ from poke_env.battle import pokemon
 #Learning how to make own player class. Customizing move choice logic, return values etc.
 class QartiPlayer(Player):
     async def choose_move(self,battle):
+        if battle.force_switch:
+            return self.choose_random_move(battle=battle)
         moves=battle.available_moves
         damageCalculator= calculate_damage
         maxDamage=0
