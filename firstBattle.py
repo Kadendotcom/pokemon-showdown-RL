@@ -31,7 +31,7 @@ class QartiPlayer(Player):
                 if currentDamage>maxDamage:
                     maxDamage=currentDamage
                     maxMove=i               
-            elif i.base_power>maxDamage:
+            else:
                 maxDamage=i.base_power
                 maxMove=i
         return self.create_order(maxMove)
@@ -47,13 +47,21 @@ async def main():
     myAccountConfig=AccountConfiguration("Qarti","***REMOVED***")
     player_1= QartiPlayer()
     
-    player_2= RandomPlayer(max_concurrent_battles=1)
+    player_2= RandomPlayer(max_concurrent_battles=2)
     
+    player_3 = RandomPlayer(max_concurrent_battles=1)
     
-    await player_1.battle_against(player_2, n_battles=1)
+    await player_3.battle_against(player_2, n_battles=100)
+    
+    await player_1.battle_against(player_2, n_battles=100)
+    
+    if player_1.win_rate>player_3.win_rate:
+        print(f"Qarti Bot won:{player_1.n_won_battles} and Random Bot won: {player_3.n_won_battles} ")
+    else:
+        print("Qarit Bot sucks. ")
 
-    print(f"Finished Battles: {player_1.n_finished_battles}")
-    print(f"Player 1 wins: {player_1.n_won_battles}")
+    # print(f"Finished Battles: {player_1.n_finished_battles}")
+    # print(f"Player 1 wins: {player_1.n_won_battles}")
     
 if __name__ == "__main__":
     asyncio.run(main())
