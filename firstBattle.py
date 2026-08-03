@@ -6,14 +6,28 @@ from poke_env import battle
 from poke_env.player import battle_order 
 from poke_env import Player
 from poke_env.battle import move
+from poke_env import calc
+from poke_env.calc import calculate_damage
+
+from poke_env.battle import pokemon
 
 #Learning how to make own player class. Customizing move choice logic, return values etc.
 class QartiPlayer(Player):
     async def choose_move(self,battle):
         moves=battle.available_moves
-        largestDamage=max(moves)
-        moveType=moves[0].PokemonType
-        opponentType=battle.opponent_active_pokemon
+        damageCalculator= calculate_damage
+        maxDamage=0
+        for i in moves:
+            if all(battle.opponent_active_pokemon.stats.values()):
+                currentDamage=(damageCalculator(attacker_identifier = battle.active_pokemon.identifier(battle.player_role),defender_identifier = battle.opponent_active_pokemon.identifier(battle.opponent_role),move = i,battle = battle))[0]
+                if currentDamage>maxDamage:
+                    maxDamage=currentDamage
+                    maxMove=i               
+            elif i.base_power>maxDamage:
+                maxDamage=i.base_power
+                maxMove=i
+        return self.create_order(maxMove)
+
         #modifying choose_move can allow you to change the logic behind making a move choice. therefore allowing you to make optimal move choices 
         # choose move is called each time the QartiPlayer has to make a move.
         print(f"{battle.active_pokemon.current_hp}")
