@@ -21,7 +21,7 @@ class QartiPlayer(Player):
         # list of moves active pokemon can make this turn 
         moves=battle.available_moves
         damageCalculator= calculate_damage
-        maxDamage=0
+        maxDamage=-1
         # loop through all moves
         for i in moves:
             # check all stats in opponent stat dict are valid, otherwise just use max base power in available moves
@@ -31,9 +31,10 @@ class QartiPlayer(Player):
                 if currentDamage>maxDamage:
                     maxDamage=currentDamage
                     maxMove=i               
-            else:
+            elif i.base_power>maxDamage:
                 maxDamage=i.base_power
                 maxMove=i
+        
         return self.create_order(maxMove)
 
         #modifying choose_move can allow you to change the logic behind making a move choice. therefore allowing you to make optimal move choices 
