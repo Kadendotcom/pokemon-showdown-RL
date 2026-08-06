@@ -17,12 +17,16 @@ from poke_env.battle import pokemon
 #Learning how to make own player class. Customizing move choice logic, return values etc.
 class QartiPlayer(Player):
     async def choose_move(self,battle):
+        # if the bot is forced to switch, check for the best possible switch (offensively). then make that switch. If there is no best typing switch, just make the first available swap.
         minimal_multi=1
+        best_atk=-1
         if battle.force_switch:
-            bestMon = battle.available_switches[0]
-            for mon in battle.available_switches:
-                if battle.opponent_active_pokemon.damage_multiplier(mon.type_1) > minimal_multi or (mon.type_2 and battle.opponent_active_pokemon.damage_multiplier(mon.type_2) > minimal_multi):
+            bestMon=battle.available_switches[0]
+            for mon  in battle.available_switches:
+                best_offense = max(mon.stats.get("atk"), mon.stats.get("spa"))
+                if (battle.opponent_active_pokemon.damage_multiplier(mon.type_1) > minimal_multi or (mon.type_2 and battle.opponent_active_pokemon.damage_multiplier(mon.type_2) > minimal_multi)) and best_offense > best_atk:
                     bestMon = mon
+                    best_atk = best_offense
             return self.create_order(bestMon)
 
         # list of moves active pokemon can make this turn
@@ -70,10 +74,7 @@ class QartiPlayerNoSwap(Player):
         return self.create_order(maxMove)
         #modifying choose_move can allow you to change the logic behind making a move choice. therefore allowing you to make optimal move choices
         # choose move is called each time the QartiPlayer has to make a move
-    def optimal_swap(self,battle):
-        pass
-    def is_super_effective(self,battle):
-        pass
+        
 
 async def main():
 
@@ -86,17 +87,17 @@ async def main():
     player_3 = RandomPlayer(AccountConfiguration.generate("Bot"),max_concurrent_battles=1)
     
     player_4= QartiPlayerNoSwap()
-
-    await player_3.battle_against(player_2, n_battles=300)
-
-    await player_1.battle_against(player_2, n_battles=300)
     
-    await player_4.battle_against(player_1, n_battles=300)
+    #await player_3.battle_against(player_2, n_battles=300)
 
-    if player_1.win_rate>player_3.win_rate:
-        print(f"Qarti Bot won:{player_1.n_won_battles} and Random Bot won: {player_3.n_won_battles} ")
-    else:
-        print("Qarit Bot sucks. ")
+    #await player_1.battle_against(player_2, n_battles=300)
+    
+    await player_4.battle_against(player_1, n_battles=100)
+
+    # if player_1.win_rate>player_3.win_rate:
+    #     print(f"Qarti Bot won:{player_1.n_won_battles} and Random Bot won: {player_3.n_won_battles} ")
+    # else:
+    #     print("Qarit Bot sucks. ")
     
     if player_4.win_rate<player_1.win_rate:
         print(f"Custom swapping wins. Qarti Bot with swapping logic beat Qarit Bot without swapping logic. Swapping Logic:{player_1.n_won_battles} vs. No Swapping Logic:{player_4.n_won_battles} ")
