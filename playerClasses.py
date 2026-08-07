@@ -20,6 +20,7 @@ class QartiPlayer(Player):
         # if the bot is forced to switch, check for the best possible switch (offensively). then make that switch. If there is no best typing switch, just make the first available swap.
         minimal_multi=1
         best_atk=-1
+        #Force swap case 
         if battle.force_switch:
             bestMon=battle.available_switches[0]
             for mon  in battle.available_switches:
@@ -28,7 +29,18 @@ class QartiPlayer(Player):
                     bestMon = mon
                     best_atk = best_offense
             return self.create_order(bestMon)
-
+        #Constantly checks if the current mon matchup is good for the bot.
+        #This will catch if the opponent made a swap that will be defensively strong against the bots mon
+        
+        opp_mon_type=battle.opponent_active_pokemon.type_1
+        opp_mon_type2=battle.opponent_active_pokemon.type_2
+        if battle.active_pokemon.damage_multiplier(opp_mon_type) >= 4 or (opp_mon_type2 and battle.active_pokemon.damage_multiplier(opp_mon_type2) >= 4) :
+            bestMon=battle.active_pokemon
+            for mon in battle.available_switches:
+                if (mon.damage_multiplier(opp_mon_type) <2 or (opp_mon_type2 and mon.damage_multiplier(opp_mon_type2) <2)) and (mon.stats.get("atk") > bestMon.stats.get("atk") or mon.stats.get("spa") > bestMon.stats.get("spa")):
+                    bestMon=mon
+            if bestMon!=battle.active_pokemon:
+                return self.create_order(bestMon)
         # list of moves active pokemon can make this turn
         moves=battle.available_moves
         damageCalculator= calculate_damage
@@ -76,38 +88,6 @@ class QartiPlayerNoSwap(Player):
         # choose move is called each time the QartiPlayer has to make a move
         
 
-async def main():
 
-    load_dotenv()
-    myAccountConfig=AccountConfiguration(os.getenv("SHOWDOWN_USERNAME"), os.getenv("SHOWDOWN_PASSWORD"))
-    player_1= QartiPlayer(myAccountConfig)
-
-    player_2= RandomPlayer(AccountConfiguration.generate("Bot"),max_concurrent_battles=2)
-
-    player_3 = RandomPlayer(AccountConfiguration.generate("Bot"),max_concurrent_battles=1)
-    
-    player_4= QartiPlayerNoSwap()
-    
-    #await player_3.battle_against(player_2, n_battles=300)
-
-    #await player_1.battle_against(player_2, n_battles=300)
-    
-    await player_4.battle_against(player_1, n_battles=100)
-
-    # if player_1.win_rate>player_3.win_rate:
-    #     print(f"Qarti Bot won:{player_1.n_won_battles} and Random Bot won: {player_3.n_won_battles} ")
-    # else:
-    #     print("Qarit Bot sucks. ")
-    
-    if player_4.win_rate<player_1.win_rate:
-        print(f"Custom swapping wins. Qarti Bot with swapping logic beat Qarit Bot without swapping logic. Swapping Logic:{player_1.n_won_battles} vs. No Swapping Logic:{player_4.n_won_battles} ")
-    else:
-        print(f"Random swapping wins. Qarti Bot with no swapping logic beat Qarit Bot with swapping logic. Swapping Logic:{player_1.n_won_battles} vs. No Swapping Logic:{player_4.n_won_battles} ")
-
-    # print(f"Finished Battles: {player_1.n_finished_battles}")
-    # print(f"Player 1 wins: {player_1.n_won_battles}")
-
-if __name__ == "__main__":
-    asyncio.run(main())
 
 
